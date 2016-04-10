@@ -3,6 +3,8 @@ package main
 import (
 	"go/parser"
 	"log"
+
+	"github.com/josephspurrier/apigen/tree"
 )
 
 func init() {
@@ -24,7 +26,7 @@ func generateHello() {
 	arrImports = append(arrImports, "fmt")
 
 	// Create the package
-	gt := New(packageName)
+	gt := tree.New(packageName)
 	gt.AddImportSection(arrImports)
 	gt.AddHelloMainFunc()
 
@@ -41,13 +43,13 @@ func generateModel() {
 
 	var err error
 	var arrImports []string
-	gt := &GoTree{}
-	spec := &GoTree{}
+	gt := &tree.Tree{}
+	spec := &tree.Tree{}
 
 	entityName := "user"
 
 	// Read the file
-	gt, err = Load("template/model.go", 0)
+	gt, err = tree.Load("template/model.go", 0)
 	if err != nil {
 		log.Println(err)
 		return
@@ -64,7 +66,7 @@ func generateModel() {
 	}
 
 	// Read the spec
-	spec, err = Load("spec/user/user.go", parser.ParseComments)
+	spec, err = tree.Load("spec/user/user.go", parser.ParseComments)
 	if err != nil {
 		log.Println(err)
 		return

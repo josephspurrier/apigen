@@ -1,4 +1,4 @@
-package main
+package tree
 
 import (
 	"bytes"
@@ -20,7 +20,7 @@ var (
 	ErrVarNotFound   = errors.New("variable not found")
 )
 
-type GoTree struct {
+type Tree struct {
 	FileSet    *token.FileSet
 	File       *ast.File
 	CommentMap ast.CommentMap
@@ -47,7 +47,7 @@ type StructCopier struct {
 }
 
 type CommentVisitor struct {
-	Tree *GoTree
+	Tree *Tree
 }
 
 // Visit walks the tree for CommentVisitor
@@ -74,7 +74,7 @@ func (v *CommentVisitor) Visit(n ast.Node) (w ast.Visitor) {
 }
 
 // PrintComments prints all the comments and locations
-func (gt *GoTree) PrintComments() error {
+func (gt *Tree) PrintComments() error {
 	cv := &CommentVisitor{
 		Tree: gt,
 	}
@@ -103,7 +103,7 @@ func (v *StructCopier) Visit(n ast.Node) (w ast.Visitor) {
 }
 
 // StructFields returns the struct fields
-func (gt *GoTree) StructFields(varName string) ([]*ast.Field, *ast.CommentGroup, error) {
+func (gt *Tree) StructFields(varName string) ([]*ast.Field, *ast.CommentGroup, error) {
 	sc := &StructCopier{
 		Name: varName,
 	}
@@ -239,7 +239,7 @@ func (v *StructChanger) Visit(n ast.Node) (w ast.Visitor) {
 }
 
 // ChangeStruct changes the struct field list
-func (gt *GoTree) ChangeStruct(varName string, varValue []*ast.Field, varComments *ast.CommentGroup) error {
+func (gt *Tree) ChangeStruct(varName string, varValue []*ast.Field, varComments *ast.CommentGroup) error {
 	sc := &StructChanger{
 		Name:     varName,
 		Fields:   varValue,
@@ -280,7 +280,7 @@ func (v *ConstVisitor) Visit(n ast.Node) (w ast.Visitor) {
 }
 
 // ChangeConstString changes the value of a named const
-func (gt *GoTree) ChangeConstString(varName string, varValue string) error {
+func (gt *Tree) ChangeConstString(varName string, varValue string) error {
 	cv := &ConstVisitor{
 		Name:  varName,
 		Value: varValue,
@@ -296,8 +296,8 @@ func (gt *GoTree) ChangeConstString(varName string, varValue string) error {
 }
 
 // New creates a new Go package tree
-func New(name string) *GoTree {
-	gt := &GoTree{
+func New(name string) *Tree {
+	gt := &Tree{
 		FileSet: token.NewFileSet(),
 		File: &ast.File{
 			Name: &ast.Ident{
@@ -310,10 +310,10 @@ func New(name string) *GoTree {
 }
 
 // Load creates a Go package tree from a file
-func Load(filepath string, mode parser.Mode) (*GoTree, error) {
+func Load(filepath string, mode parser.Mode) (*Tree, error) {
 	var err error
 
-	gt := &GoTree{
+	gt := &Tree{
 		FileSet: token.NewFileSet(),
 	}
 
@@ -325,14 +325,14 @@ func Load(filepath string, mode parser.Mode) (*GoTree, error) {
 }
 
 // SetPackageName sets the package name
-func (gt *GoTree) SetPackageName(name string) {
+func (gt *Tree) SetPackageName(name string) {
 	gt.File.Name = &ast.Ident{
 		Name: name,
 	}
 }
 
 // AddImport adds an import section with import paths
-func (gt *GoTree) AddImportSection(imports []string) {
+func (gt *Tree) AddImportSection(imports []string) {
 	var specs []ast.Spec
 
 	// Add all the imports
@@ -355,7 +355,7 @@ func (gt *GoTree) AddImportSection(imports []string) {
 }
 
 // AddHelloMainFunc adds a main func the outputs: hello world
-func (gt *GoTree) AddHelloMainFunc() {
+func (gt *Tree) AddHelloMainFunc() {
 	fd := &ast.FuncDecl{
 		Name: &ast.Ident{
 			Name: "main",
@@ -384,7 +384,7 @@ func (gt *GoTree) AddHelloMainFunc() {
 }
 
 // AddImport adds an import
-func (gt *GoTree) AddImport(imp string) {
+func (gt *Tree) AddImport(imp string) {
 
 	// Add the import
 	for i := 0; i < len(gt.File.Decls); i++ {
@@ -405,7 +405,7 @@ func (gt *GoTree) AddImport(imp string) {
 }
 
 // Bytes returns the code as a byte array
-func (gt *GoTree) Bytes(doFormat bool) ([]byte, error) {
+func (gt *Tree) Bytes(doFormat bool) ([]byte, error) {
 	var output []byte
 	var err error
 
@@ -428,7 +428,7 @@ func (gt *GoTree) Bytes(doFormat bool) ([]byte, error) {
 }
 
 // WriteFile writes the code to a file and create the folder structure
-func (gt *GoTree) WriteFile(filepath string, doFormat bool, dirPerm os.FileMode, filePerm os.FileMode) error {
+func (gt *Tree) WriteFile(filepath string, doFormat bool, dirPerm os.FileMode, filePerm os.FileMode) error {
 	var err error
 
 	// Create folders
